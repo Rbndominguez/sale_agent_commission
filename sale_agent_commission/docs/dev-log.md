@@ -66,3 +66,27 @@ Numbering note: this repo (`sale_agent_commission`) has its own ADR
 sequence, starting at ADR-0001, independent from the `odoo-lab`
 repository's ADR-0001 (development environment) and ADR-0002 (licence
 and repository layout).
+
+## Session 2.3
+
+**Settlement model and state flow with buttons.**
+
+Two new models: `sale.commission.settlement` (header) and
+`sale.commission.settlement.line`. Sequence `sale.commission.settlement`
+for the reference, four-state flow (draft/confirmed/paid/cancelled)
+driven by action buttons with `_ensure_state` guarding transitions.
+`sale.order` gets `settlement_line_ids` and a stored
+`commission_settled` boolean.
+
+No incidents during implementation. All manual test cases passed on
+first install: sequence numbering, cross-agent line rejection, base
+recompute on `commission_base` change, empty-settlement confirm
+rejection, readonly lines and delete rejection once confirmed, live-
+settlement duplicate rejection lifted after cancelling, date CHECK
+constraint, `commission_settled` flipping back to `False` on
+cancellation.
+
+One thing to watch going into 2.4: the wizard will need to filter
+candidate orders with `commission_settled = False`, not by absence of
+`settlement_line_ids`, since a cancelled settlement leaves the line but
+frees the order.

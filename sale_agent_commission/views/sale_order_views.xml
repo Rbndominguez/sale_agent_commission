@@ -7,9 +7,13 @@
         <field name="arch" type="xml">
             <field name="user_id" position="after">
                 <field name="agent_id"/>
-                <field name="commission_rate" invisible="not agent_id"/>
-                <field name="commission_amount" invisible="not agent_id"/>
-                <field name="commission_amount_margin" invisible="not agent_id"/>
+                <field name="commission_rate" invisible="not agent_id"
+                    groups="sales_team.group_sale_manager"/>
+                <field name="commission_amount" invisible="not agent_id"
+                    groups="sales_team.group_sale_manager"/>
+                <field name="commission_amount_margin" invisible="not agent_id"
+                    groups="sales_team.group_sale_manager"/>
+                <field name="commission_settled" readonly="1" invisible="not agent_id"/>
             </field>
         </field>
     </record>

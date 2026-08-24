@@ -40,6 +40,25 @@ class SaleOrder(models.Model):
     store=True,
     )
 
+    settlement_line_ids = fields.One2many(
+        comodel_name="sale.commission.settlement.line",
+        inverse_name="order_id",
+        string="Settlement lines",
+    )
+    commission_settled = fields.Boolean(
+        compute="_compute_commission_settled",
+        store=True,
+        help="Set when this order belongs to a settlement that is not cancelled.",
+    )
+
+    @api.depends("settlement_line_ids.settlement_id.state")
+    def _compute_commission_settled(self):
+        for order in self:
+            order.commission_settled = any(
+                line.settlement_id.state != "cancelled"
+                for line in order.settlement_line_ids
+            )
+
     @api.depends("margin", "commission_rate")
     def _compute_commission_amount_margin(self):
         for order in self:

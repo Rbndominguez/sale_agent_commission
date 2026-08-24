@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="sale_commission_settlement_view_form" model="ir.ui.view">
+        <field name="name">sale.commission.settlement.form</field>
+        <field name="model">sale.commission.settlement</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_confirm" type="object" string="Confirm"
+                            class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_mark_as_paid" type="object" string="Mark as paid"
+                            class="oe_highlight" invisible="state != 'confirmed'"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="state not in ['draft', 'confirmed']"/>
+                    <button name="action_reset_to_draft" type="object" string="Reset to draft"
+                            invisible="state != 'cancelled'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,confirmed,paid"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="agent_id" readonly="state != 'draft'"/>
+                            <field name="commission_base" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="date_from" readonly="state != 'draft'"/>
+                            <field name="date_to" readonly="state != 'draft'"/>
+                            <field name="company_id" groups="base.group_multi_company"
+                                   readonly="state != 'draft'"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Settled orders">
+                            <field name="line_ids" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="order_id"/>
+                                    <field name="base_amount"/>
+                                    <field name="commission_rate"/>
+                                    <field name="amount"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                            <group class="oe_subtotal_footer oe_right">
+                                <field name="amount_total"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="sale_commission_settlement_view_list" model="ir.ui.view">
+        <field name="name">sale.commission.settlement.list</field>
+        <field name="model">sale.commission.settlement</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state == 'cancelled'"
+                  decoration-success="state == 'paid'">
+                <field name="name"/>
+                <field name="agent_id"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="commission_base"/>
+                <field name="amount_total"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="sale_commission_settlement_action" model="ir.actions.act_window">
+        <field name="name">Commission Settlements</field>
+        <field name="res_model">sale.commission.settlement</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="sale_commission_settlement_menu"
+              name="Commission Settlements"
+              parent="sale.menu_sale_config"
+              action="sale_commission_settlement_action"
+              sequence="90"/>
+
+</odoo>
