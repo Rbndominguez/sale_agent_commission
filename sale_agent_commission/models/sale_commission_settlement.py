@@ -68,7 +68,6 @@ class SaleCommissionSettlement(models.Model):
         copy=False,
         tracking=True,
     )
-
     _check_period = models.Constraint(
         "CHECK(date_to >= date_from)",
         "A settlement cannot end before it starts.",

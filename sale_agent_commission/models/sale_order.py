@@ -27,19 +27,16 @@ class SaleOrder(models.Model):
         compute="_compute_commission_amount",
         store=True,
     )
-
     _commission_rate_range = models.Constraint(
         "CHECK(commission_rate >= 0 AND commission_rate <= 100)",
         "The commission rate must be between 0 and 100.",
     )
-
     commission_amount_margin = fields.Monetary(
     string="Commission (on Margin)",
     currency_field="currency_id",
     compute="_compute_commission_amount_margin",
     store=True,
     )
-
     settlement_line_ids = fields.One2many(
         comodel_name="sale.commission.settlement.line",
         inverse_name="order_id",

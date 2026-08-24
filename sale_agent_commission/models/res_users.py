@@ -13,7 +13,6 @@ class ResUsers(models.Model):
         digits=(5, 2),
         help="Rate proposed on new sales orders assigned to this agent.",
     )
-
     _commission_rate_range = models.Constraint(
         "CHECK(commission_rate >= 0 AND commission_rate <= 100)",
         "The commission rate must be between 0 and 100.",

@@ -44,7 +44,6 @@ class SaleCommissionSettlementLine(models.Model):
         store=True,
         readonly=False,
     )
-
     _unique_order_per_settlement = models.Constraint(
         "UNIQUE(settlement_id, order_id)",
         "A sales order can only appear once in the same settlement.",
