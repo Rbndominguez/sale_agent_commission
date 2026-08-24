@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_users_form_commission" model="ir.ui.view">
+        <field name="name">res.users.form.commission</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page name="commission" string="Commission">
+                    <group>
+                        <field name="commission_agent"/>
+                        <field name="commission_rate"
+                               invisible="not commission_agent"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

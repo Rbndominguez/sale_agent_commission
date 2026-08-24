@@ -6,8 +6,11 @@
     "license": "AGPL-3",
     "author": "Ruben I Dominguez",
     "website": "https://github.com/Rbndominguez/sale_agent_commission",
-    "depends": ["sale"],
-    "data": [],
+    "depends": ["sale", "sale_margin"],
+    "data": [
+        "views/res_users_views.xml",
+        "views/sale_order_views.xml",
+    ],
     "installable": True,
     "application": False,
 }
