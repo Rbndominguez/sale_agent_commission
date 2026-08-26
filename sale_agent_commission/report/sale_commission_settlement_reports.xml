@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="action_report_commission_settlement" model="ir.actions.report">
+        <field name="name">Commission Settlement</field>
+        <field name="model">sale.commission.settlement</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">sale_agent_commission.report_commission_settlement</field>
+        <field name="report_file">sale_agent_commission.report_commission_settlement</field>
+        <field name="binding_model_id" ref="model_sale_commission_settlement"/>
+        <field name="print_report_name">'Commission Settlement - %s' % (object.name or '').replace('/', '_')</field>
+        <!-- Falsy for any state but paid, so nothing is stored while the
+             document can still change. See ADR-0004. -->
+        <field name="attachment">(object.state == 'paid') and ((object.name or '').replace('/', '_') + '.pdf')</field>
+        <field name="attachment_use" eval="True"/>
+    </record>
+
+</odoo>

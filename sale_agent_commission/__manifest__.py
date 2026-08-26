@@ -15,6 +15,8 @@
         "views/sale_order_views.xml",
         "views/sale_commission_settlement_views.xml",
         "wizard/sale_commission_settlement_generate_views.xml",
+        "report/sale_commission_settlement_templates.xml",
+        "report/sale_commission_settlement_reports.xml",
     ],
     "installable": True,
     "application": False,

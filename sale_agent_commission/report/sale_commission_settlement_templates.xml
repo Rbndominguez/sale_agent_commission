@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="report_commission_settlement_document">
+        <t t-call="web.external_layout">
+            <t t-set="o" t-value="o.with_context(lang=lang)"/>
+            <div class="page">
+
+                <div t-if="o.state == 'draft'"
+                     class="alert alert-warning text-center" role="alert">
+                    <strong>Draft settlement.</strong>
+                    Lines can still be edited; amounts are not final.
+                </div>
+                <div t-if="o.state == 'cancelled'"
+                     class="alert alert-danger text-center" role="alert">
+                    <strong>Cancelled settlement.</strong>
+                    This document does not represent a payable amount.
+                </div>
+
+                <h2 class="mb-4">
+                    Commission Settlement
+                    <span t-field="o.name"/>
+                </h2>
+
+                <div class="row mb-4">
+                    <div class="col-6">
+                        <div>
+                            <strong>Agent:</strong>
+                            <span t-field="o.agent_id"/>
+                        </div>
+                        <div>
+                            <strong>Commission base:</strong>
+                            <span t-field="o.commission_base"/>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div>
+                            <strong>Period:</strong>
+                            <span t-field="o.date_from"/> - <span t-field="o.date_to"/>
+                        </div>
+                        <div>
+                            <strong>Status:</strong>
+                            <span t-field="o.state"/>
+                        </div>
+                    </div>
+                </div>
+
+                <table class="table table-sm o_main_table" t-if="o.line_ids">
+                    <thead>
+                        <tr>
+                            <th class="text-start">Order</th>
+                            <th class="text-start">Order date</th>
+                            <th class="text-start">Customer</th>
+                            <!-- The column header is the settlement base itself,
+                                 so the reader knows what the figure comes from. -->
+                            <th class="text-end"><span t-field="o.commission_base"/></th>
+                            <th class="text-end">Rate</th>
+                            <th class="text-end">Commission</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="o.line_ids" t-as="line">
+                            <td><span t-field="line.order_id.name"/></td>
+                            <td><span t-field="line.order_id.date_order"/></td>
+                            <td><span t-field="line.order_id.partner_id"/></td>
+                            <td class="text-end">
+                                <span t-field="line.base_amount"
+                                      t-options-widget="'monetary'"
+                                      t-options-display_currency="o.currency_id"/>
+                            </td>
+                            <td class="text-end">
+                                <span t-field="line.commission_rate"/>%
+                            </td>
+                            <td class="text-end">
+                                <span t-field="line.amount"
+                                      t-options-widget="'monetary'"
+                                      t-options-display_currency="o.currency_id"/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <p t-if="not o.line_ids" class="text-muted">
+                    This settlement has no settled orders.
+                </p>
+
+                <div class="row justify-content-end">
+                    <div class="col-4">
+                        <table class="table table-sm">
+                            <tr class="border-black">
+                                <td><strong>Total</strong></td>
+                                <td class="text-end">
+                                    <strong>
+                                        <span t-field="o.amount_total"
+                                              t-options-widget="'monetary'"
+                                              t-options-display_currency="o.currency_id"/>
+                                    </strong>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </t>
+    </template>
+
+    <template id="report_commission_settlement">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-set="lang" t-value="o.agent_id.lang"/>
+                <t t-call="sale_agent_commission.report_commission_settlement_document"
+                   t-lang="lang"/>
+            </t>
+        </t>
+    </template>
+
+</odoo>
