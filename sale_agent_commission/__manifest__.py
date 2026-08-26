@@ -9,11 +9,12 @@
     "depends": ["sale", "sale_margin", "mail"],
     "data": [
         "security/ir.model.access.csv",
+        "security/sale_commission_settlement_security.xml",
         "data/ir_sequence_data.xml",
-        "data/sale_commission_settlement_security.xml"
         "views/res_users_views.xml",
         "views/sale_order_views.xml",
         "views/sale_commission_settlement_views.xml",
+        "wizard/sale_commission_settlement_generate_views.xml",
     ],
     "installable": True,
     "application": False,

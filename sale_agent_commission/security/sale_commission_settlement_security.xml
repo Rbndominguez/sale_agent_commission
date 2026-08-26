@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
 <record id="sale_commission_settlement_rule_own" model="ir.rule">
