@@ -22,7 +22,7 @@ jobs:
       - name: Install ruff
         run: pip install ruff
       - name: Check code style
-        run: ruff check --output-format=github .
+        run: ruff format --check .
 
   test:
     name: Odoo 19 test suite
