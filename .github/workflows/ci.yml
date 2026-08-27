@@ -20,7 +20,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install ruff
-        run: pip install ruff==0.16.4
+        run: pip install -r requirements-dev.txt
       - name: Check code style
         run: ruff format --check .
 
