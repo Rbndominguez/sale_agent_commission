@@ -147,6 +147,39 @@ confirming.
   `groups_id`, since every salesperson can see the order list but only
   managers hold access rights on the transient model.
 
+## Revisited in session 2.6: what `_period_bounds` actually buys
+
+Session 2.4 introduced `_period_bounds` to convert the period from the
+user's timezone to naive UTC before querying `date_order`. Session 2.6
+tested that reasoning and found it incomplete.
+
+Odoo 19's ORM already converts a `date` value compared against a
+`Datetime` field in a domain, using the acting user's `tz`. Verified by
+running the same domain, over the same data, in the same PostgreSQL
+session, changing only the acting user: with `tz` set the boundaries land
+on local midnight; with `tz` unset they land on UTC midnight. Neither
+outcome changes when `_period_bounds` is replaced by returning
+`date_from` and `date_to` untouched.
+
+So `_period_bounds` is, today, functionally redundant in both cases: with
+a `tz` it computes what the ORM would compute anyway, and without one it
+falls back to `or "UTC"`, which is what the ORM does anyway.
+
+It is kept, for two reasons that are about intent rather than behaviour.
+It states the conversion explicitly where a reader would otherwise have
+to know an undocumented ORM behaviour to follow the code, and it is the
+single place to change when session 2.6b decides what an automated run
+should do.
+
+The real gap is the fallback itself. `or "UTC"` is not a neutral default:
+for a cron running as a technical account with no `tz`, it silently
+shifts every period boundary by the agent's UTC offset, dropping orders
+at the start of the period and keeping orders past its end. This is
+pinned by `test_a_user_without_tz_gets_naive_utc_bounds`, which asserts
+the current, wrong-ish behaviour so that fixing it is a visible change
+rather than a silent one. Choosing the company timezone instead is
+deferred to session 2.6b.
+
 ## See also
 - ADR-0002 of this repository, for the settlement document and its
   frozen lines.

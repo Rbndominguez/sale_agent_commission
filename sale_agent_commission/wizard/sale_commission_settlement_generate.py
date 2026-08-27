@@ -81,6 +81,7 @@ class SaleCommissionSettlementGenerate(models.TransientModel):
         return "commission_amount"
 
     def _period_bounds(self):
+        # return (self.date_from, self.date_to)
         """Return the period as naive UTC datetimes, as stored by the ORM.
 
         date_order is a Datetime stored in UTC, while date_from and date_to
@@ -131,9 +132,7 @@ class SaleCommissionSettlementGenerate(models.TransientModel):
             orders = wizard._candidate_orders()
             wizard.candidate_order_ids = orders
             wizard.candidate_count = len(orders)
-            wizard.estimated_amount = sum(
-                orders.mapped(wizard._commission_field())
-            )
+            wizard.estimated_amount = sum(orders.mapped(wizard._commission_field()))
 
     def _settlement_values(self, agent, orders):
         """Values of the settlement created for one agent."""
@@ -144,9 +143,7 @@ class SaleCommissionSettlementGenerate(models.TransientModel):
             "date_to": self.date_to,
             "commission_base": self.commission_base,
             "company_id": self.company_id.id,
-            "line_ids": [
-                Command.create({"order_id": order.id}) for order in orders
-            ],
+            "line_ids": [Command.create({"order_id": order.id}) for order in orders],
         }
 
     def action_generate(self):

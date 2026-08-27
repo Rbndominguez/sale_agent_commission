@@ -1,3 +1,4 @@
+[![CI](https://github.com/Rbndominguez/sale_agent_commission/actions/workflows/ci.yml/badge.svg)](https://github.com/Rbndominguez/sale_agent_commission/actions/workflows/ci.yml)
 # Sale Agent Commission
 
 Commission calculation and settlement for sales agents, for Odoo 19.

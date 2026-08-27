@@ -32,10 +32,10 @@ class SaleOrder(models.Model):
         "The commission rate must be between 0 and 100.",
     )
     commission_amount_margin = fields.Monetary(
-    string="Commission (on Margin)",
-    currency_field="currency_id",
-    compute="_compute_commission_amount_margin",
-    store=True,
+        string="Commission (on Margin)",
+        currency_field="currency_id",
+        compute="_compute_commission_amount_margin",
+        store=True,
     )
     settlement_line_ids = fields.One2many(
         comodel_name="sale.commission.settlement.line",

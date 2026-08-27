@@ -1,0 +1,16 @@
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+
+[tool.ruff.lint.isort]
+# Odoo is first party here: this keeps the stdlib / third party / odoo
+# import blocks that the OCA style uses, instead of merging odoo with
+# dateutil and psycopg2.
+known-first-party = ["odoo"]
+
+[tool.ruff.lint.per-file-ignores]
+# Odoo package initialisers exist only to import their submodules.
+"__init__.py" = ["F401"]

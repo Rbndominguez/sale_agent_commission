@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ruff
+        run: pip install ruff
+      - name: Check code style
+        run: ruff check --output-format=github .
+
+  test:
+    name: Odoo 19 test suite
+    runs-on: ubuntu-latest
+    container:
+      # Official image: Python 3.12, every Odoo dependency and wkhtmltopdf
+      # already inside. Running as root avoids permission clashes between
+      # the checkout and the image's odoo user.
+      image: odoo:19.0
+      options: --user root
+    services:
+      db:
+        image: postgres:16
+        env:
+          POSTGRES_USER: odoo
+          POSTGRES_PASSWORD: odoo
+          POSTGRES_DB: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the module and run its tests
+        run: |
+          odoo \
+            --db_host=db --db_user=odoo --db_password=odoo \
+            --database=ci \
+            --addons-path="${GITHUB_WORKSPACE}" \
+            --init=sale_agent_commission \
+            --without-demo=all \
+            --test-enable \
+            --test-tags=/sale_agent_commission \
+            --workers=0 --max-cron-threads=0 \
+            --log-level=test \
+            --stop-after-init

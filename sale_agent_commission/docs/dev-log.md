@@ -214,6 +214,10 @@ Notes for next time:
 
 - Without wkhtmltopdf on the PATH, Odoo falls back to HTML instead of
   failing. Silent symptom, easy to misread as a broken template.
+    Resolved in 2.6: patched build 0.12.6.1-2 (jammy package on Ubuntu
+  24.04) installed from the wkhtmltopdf packaging releases, documented
+  in `docs/how-to/install-wkhtmltopdf.md`. The development machine now
+  matches the odoo:19.0 image used by CI.
 
 - `attachment` and `attachment_use` are edited on the `ir.actions.report`
   form, not on the generic `ir.actions.actions` list under Technical >
@@ -235,3 +239,95 @@ Notes for next time:
 - A value changed from the interface on a record the module owns (here
   `attachment_use`) is reverted by `-u`, since the field is not under
   `noupdate`.
+
+## Session 2.6
+
+**Automated tests and GitHub Actions.**
+
+New `tests/` package with a shared `common.py` fixture and five test
+modules, one per ADR area: commission fields, settlement flow, wizard
+candidate selection, security, and the report. 31 tests. Not declared in
+the manifest: Odoo imports `odoo.addons.<module>.tests` by itself when
+tests are enabled, and importing it from the module's own `__init__.py`
+would be wrong.
+
+CI in `.github/workflows/ci.yml`: a lint job running `ruff check` on a
+plain runner, and a test job inside the official `odoo:19.0` image with a
+`postgres:16` service. `--test-tags=/sale_agent_commission` keeps the run
+to this module's tests, `--without-demo=all` forces the fixture to be
+self-sufficient, `--stop-after-init` is what makes `odoo-bin` exit
+non-zero on failure. ADR-0005 documents the strategy.
+
+Errors hit and fixed, in order:
+
+- **Trailing whitespace in `models/__init__.py`.** Harmless to Python,
+  W291 for ruff, so the lint job would have failed on the first push.
+  Exactly what a linter is for.
+
+- **`_render_qweb_pdf` returns HTML under the test runner.** wkhtmltopdf
+  is installed and patched, but it needs a running HTTP server to fetch
+  report assets, and `--stop-after-init` starts none. Odoo falls back to
+  HTML without raising. A `shutil.which("wkhtmltopdf")` guard did not
+  catch this: the binary existing and the pipeline being usable are
+  different conditions. Fixed by probing the returned `report_type` and
+  calling `self.skipTest()` with a message explaining why, so the skip is
+  visible in the log instead of a green pass that asserts nothing.
+
+- **`NameError: new_test_user` in `test_settlement_generate.py`.** The
+  helper is imported in `common.py`, which does not make it visible in
+  sibling modules. Each test file needs its own import.
+
+- **Unused local in the `res.users` rate constraint test.** Created a
+  sales order the test never used; F841.
+
+Mid-session finding, and the main one: **Odoo 19's ORM converts a `date`
+compared against a `Datetime` field in a domain, using the acting user's
+`tz`, automatically.** Consequence for this module:
+`_period_bounds` is functionally redundant with what the ORM already
+does, both when the user has a `tz` and when it does not (its `or "UTC"`
+fallback matches the ORM's own non-conversion). Kept for intent and as
+the single place 2.6b will change; documented as a revisit note in
+ADR-0003. The genuine gap is the fallback: a cron account without `tz`
+gets period boundaries shifted by the agent's UTC offset, silently.
+Pinned by `test_a_user_without_tz_gets_naive_utc_bounds`, which asserts
+the current behaviour so that changing it is visible.
+
+The corollary for test design, recorded in ADR-0005 Decision 2: a test of
+timezone-correct boundaries run as a user *with* `tz` passes whether or
+not the code under test converts anything. It guards behaviour, not
+implementation. `test_period_bounds_follow_the_user_timezone` now says so
+in its docstring rather than implying more than it proves.
+
+How that finding was reached is worth remembering, because most of the
+session went into it: see
+`odoo-lab/docs/explanation/a-test-that-cannot-fail.md`.
+
+Environment change made during the session, still in place:
+
+ALTER ROLE ruben SET timezone = 'UTC';
+
+`odoo.conf` has no `db_user`, so Odoo connects as the OS user (`ruben`)
+via peer authentication, and that role now defaults to UTC. This matches
+how PostgreSQL is normally deployed in production and removes a class of
+local false negatives, but it also means any raw `psql` query now shows
+timestamps in UTC rather than local time. `ALTER ROLE ruben RESET
+timezone;` reverts it.
+
+Notes for next time:
+
+- `-i` on an already installed module is a no-op, tests included: the run
+  reports `0 tests` and looks like a pass. Either `dropdb` first or use
+  `-u`. Two false results in this session came from this.
+- A long-lived `oshell` session is easy to contaminate: it holds the
+  module code as imported at startup, keeps variables between blocks, and
+  its PostgreSQL session keeps whatever `timezone` was in effect when it
+  connected. When a result does not make sense, suspect the session
+  before the code. `inspect.getsource(...)` on the method under test
+  settles it in one line.
+- `--test-tags /module:Class.method` runs a single test. `-u` only ever
+  takes module names, never `module.Class`.
+
+One thing to watch going into 2.6b: the scheduled action inherits the
+`or "UTC"` fallback described above. Deciding between the company
+timezone, a per-agent timezone, or an explicit parameter on the cron is
+the first decision of that session, and it needs an ADR.
