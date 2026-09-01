@@ -1,2 +1,2 @@
 # Development and CI tooling. Not needed to install the module.
-ruff==0.16.4
+ruff==0.16.5
